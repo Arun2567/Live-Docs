@@ -1,0 +1,124 @@
+"use client";
+import { FaAlignLeft, FaAlignCenter, FaAlignRight, FaAlignJustify } from "react-icons/fa";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import Strike from "@tiptap/extension-strike";
+import TextAlign from "@tiptap/extension-text-align";
+import Document from '@tiptap/extension-document';
+import Heading from '@tiptap/extension-heading';
+import Paragraph from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
+import Collaboration from "@tiptap/extension-collaboration";
+import { WebrtcProvider } from "y-webrtc";
+import * as Y from "yjs";
+
+const ydoc = new Y.Doc();
+// const provider = new WebrtcProvider("room-name", ydoc);
+
+function TextEditor() {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      Strike,
+      Document,
+      Paragraph,
+      Text,
+      Heading,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+      Collaboration.configure({
+         document: ydoc 
+        })
+    ],
+    content: "<p>Write here....</p>",
+  });
+
+  if (!editor) {
+    return <div>Loading editor...</div>;
+  }
+
+  return (
+    <div className="w-1/2 h-[75vh] bg-gray-200">
+      <div className="w-full h-1/6 bg-gray-400 flex flex-row">
+        <div className="w-1/2 h-full">
+          <div className="h-1/2 w-full bg-red-100 flex justify-evenly items-center">
+            <button
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              className={`bold ${editor.isActive("bold") ? "buttons-active" : "buttons-inactive"}`}
+            >
+              B
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              className={`italic ${editor.isActive("italic") ? "buttons-active" : "buttons-inactive"}`}
+            >
+              I
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+              className={`underline ${editor.isActive("underline") ? "buttons-active" : "buttons-inactive"}`}
+            >
+              U
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              className={`line-through ${editor.isActive("strike") ? "buttons-active" : "buttons-inactive"}`}
+            >
+              S
+            </button>
+          </div>
+          <div className="h-1/2 w-full bg-red-100 flex justify-evenly items-center">
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("left").run()}
+              className={`${editor.isActive({ textAlign: "left" }) ? "buttons-active" : "buttons-inactive"}`}
+            >
+              <FaAlignLeft className={`${editor.isActive({ textAlign: "left" }) ? "text-white" : "text-black"}`} />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("center").run()}
+              className={`${editor.isActive({ textAlign: "center" }) ? "buttons-active" : "buttons-inactive"}`}
+            >
+              <FaAlignCenter className={`${editor.isActive({ textAlign: "center" }) ? "text-white" : "text-black"}`} />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("right").run()}
+              className={`${editor.isActive({ textAlign: "right" }) ? "buttons-active" : "buttons-inactive"}`}
+            >
+              <FaAlignRight className={`${editor.isActive({ textAlign: "right" }) ? "text-white" : "text-black"}`} />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+              className={`${editor.isActive({ textAlign: "justify" }) ? "buttons-active" : "buttons-inactive"}`}
+            >
+              <FaAlignJustify className={`${editor.isActive({ textAlign: "justify" }) ? "text-white" : "text-black"}`} />
+            </button>
+          </div>
+        </div>
+        <div className="w-1/2 h-full">
+        <div className="h-1/2 w-full flex justify-start items-center">
+        <input
+          type="text"
+          placeholder="Room Name"
+          className="w-3/4 h-8 ps-2 text-black bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none m-2"
+          />
+        <button className="h-8 w-1/4 me-2 bg-blue-400 rounded">Connect</button>  
+        </div>
+        <div className="h-1/2 w-full">
+
+        </div>
+        </div>
+      </div>
+      <div className="w-full h-5/6 text-black p-5">
+        <EditorContent
+          editor={editor}
+          className="prose max-w-none w-full h-full text-xl leading-8 break-words whitespace-pre-wrap [&_*]:border-none [&_*]:outline-none"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default TextEditor;

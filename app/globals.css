@@ -19,6 +19,21 @@
   }
 }
 
+@layer components {
+  .icons {
+    @apply w-10 h-10 p-3 ;
+  }
+
+  .buttons-active{
+     @apply rounded bg-black text-white w-8 h-8 flex items-center justify-center;
+  }
+
+  .buttons-inactive{
+    @apply text-black w-8 h-8 flex items-center justify-center;
+ }
+}
+
+
 body {
   background: var(--background);
   color: var(--foreground);

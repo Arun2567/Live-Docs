@@ -5,10 +5,10 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Strike from "@tiptap/extension-strike";
 import TextAlign from "@tiptap/extension-text-align";
-import Document from '@tiptap/extension-document';
-import Heading from '@tiptap/extension-heading';
-import Paragraph from '@tiptap/extension-paragraph';
-import Text from '@tiptap/extension-text';
+import Document from "@tiptap/extension-document";
+import Heading from "@tiptap/extension-heading";
+import Paragraph from "@tiptap/extension-paragraph";
+import Text from "@tiptap/extension-text";
 import Collaboration from "@tiptap/extension-collaboration";
 import { WebrtcProvider } from "y-webrtc";
 import * as Y from "yjs";
@@ -19,6 +19,7 @@ function TextEditor() {
   const [provider, setProvider] = useState<WebrtcProvider | null>(null);
   const [connectedUsers, setConnectedUsers] = useState<Map<number, any>>(new Map());
   const [ydoc] = useState(() => new Y.Doc());
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -32,30 +33,45 @@ function TextEditor() {
         types: ["heading", "paragraph"],
       }),
       Collaboration.configure({
-         document: ydoc 
-        })
+        document: ydoc,
+      }),
     ],
     content: "<p>Write here....</p>",
   });
 
   const handleConnect = () => {
     if (roomName && !provider) {
+      console.log(`Attempting to connect to room: ${roomName}`);
       const newProvider = new WebrtcProvider(roomName, ydoc, {
-        signaling: ['wss://signaling.yjs.dev']
+        signaling: ["wss://signaling.yjs.dev"],
+      });
+
+      // Log connection status (fixed type)
+      newProvider.on("status", ({ connected }: { connected: boolean }) => {
+        console.log(`WebRTC Status: ${connected ? "Connected" : "Disconnected"}`);
       });
 
       // Set random user name and color
-      newProvider.awareness.setLocalStateField('user', {
-        name: `User${Math.floor(Math.random() * 1000)}`,
-        color: '#' + Math.floor(Math.random()*16777215).toString(16)
+      const userName = `User${Math.floor(Math.random() * 1000)}`;
+      newProvider.awareness.setLocalStateField("user", {
+        name: userName,
+        color: "#" + Math.floor(Math.random() * 16777215).toString(16),
       });
+      console.log(`Local user set: ${userName}`);
 
       // Handle awareness updates
-      newProvider.awareness.on('update', () => {
-        setConnectedUsers(new Map(newProvider.awareness.getStates()));
-        if (newProvider.awareness.getStates().size > 0 && !provider) {
-          alert('Successfully connected to room: ' + roomName);
+      newProvider.awareness.on("update", () => {
+        const states = newProvider.awareness.getStates();
+        console.log("Awareness updated. Connected users:", Array.from(states.entries()));
+        setConnectedUsers(new Map(states));
+        if (states.size > 0 && !provider) {
+          alert(`Successfully connected to room: ${roomName}`);
         }
+      });
+
+      // Log Yjs document changes (for debugging collaboration)
+      ydoc.on("update", (update: Uint8Array) => {
+        console.log("Yjs document updated:", update);
       });
 
       setProvider(newProvider);
@@ -64,10 +80,11 @@ function TextEditor() {
 
   const handleDisconnect = () => {
     if (provider) {
+      console.log("Disconnecting from room:", roomName);
       provider.destroy();
       setProvider(null);
       setConnectedUsers(new Map());
-      alert('Disconnected from room: ' + roomName);
+      alert(`Disconnected from room: ${roomName}`);
     }
   };
 
@@ -141,8 +158,8 @@ function TextEditor() {
           </div>
         </div>
         <div className="w-1/2 h-full">
-        <div className="h-1/2 w-full flex justify-start items-center">
-             <input
+          <div className="h-1/2 w-full flex justify-start items-center">
+            <input
               type="text"
               placeholder="Room Name"
               value={roomName}
@@ -150,7 +167,7 @@ function TextEditor() {
               className="w-3/4 h-8 ps-2 text-black bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none m-2"
             />
             {!provider ? (
-              <button 
+              <button
                 onClick={handleConnect}
                 className="h-8 w-1/4 me-2 bg-blue-400 rounded hover:bg-blue-500"
                 disabled={!roomName}
@@ -158,19 +175,19 @@ function TextEditor() {
                 Connect
               </button>
             ) : (
-              <button 
+              <button
                 onClick={handleDisconnect}
                 className="h-8 w-1/4 me-2 bg-red-400 rounded hover:bg-red-500"
               >
                 Disconnect
               </button>
             )}
-        </div>
-        <div className="h-1/2 w-full flex items-center px-2 overflow-y-auto">
+          </div>
+          <div className="h-1/2 w-full flex items-center px-2 overflow-y-auto">
             <div className="flex flex-wrap gap-2">
               {Array.from(connectedUsers.entries()).map(([clientId, state]) => (
                 state.user && (
-                  <div 
+                  <div
                     key={clientId}
                     className="px-2 py-1 rounded text-sm text-white"
                     style={{ backgroundColor: state.user.color }}
